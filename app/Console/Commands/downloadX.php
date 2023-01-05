@@ -14,7 +14,7 @@ class downloadX extends Command
   
     protected $signature = 'download:fipe';
 
-    protected $description = 'Download X';
+    protected $description = 'Download Fipe Veiculos';
 
 
     public function __construct()
@@ -63,45 +63,33 @@ class downloadX extends Command
         foreach ($marcas as $key => $marca) {
             $codigoMarca = $marca->Value;
             $nomeMarca = $marca->Label;
-            $this->getModelos($codigoData, $mesData, $codigoMarca, $nomeMarca);
+            $this->getAnosModelos($codigoData, $mesData, $codigoMarca, $nomeMarca);
         }
     }
 
-    public function getModelos($codigoData, $mesData, $codigoMarca, $nomeMarca)
+    public function getAnosModelos($codigoData, $mesData, $codigoMarca, $nomeMarca)
     {
-        $modelos = [];
         $response = Http::post('https://veiculos.fipe.org.br/api/veiculos//ConsultarModelos', [
             'codigoTabelaReferencia' => $codigoData,
             'codigoTipoVeiculo' => 1,
             'codigoMarca' => $codigoMarca,
         ]);
-        $body = $response->body();
-        $modelos = json_decode($body);
-        // dd($modelos);
-        foreach ($modelos as $key => $modelo) {
+        $modelos = json_decode($response->body());
+        
+        $anos = $modelos->Anos;
+        $modelos = $modelos->Modelos;
+        
+        foreach ($anos as $ano) {
+                
+            $anoVeiculo = $ano->Value;
+            $combustivelFormat = explode(' ', $ano->Label);
+            $combustivel = $combustivelFormat[0];
+                
+        }
+
+        foreach ($modelos as $modelo) {
             $codigoModelo = $modelo->Value;
             $nomeModelo = $modelo->Label;
-            $this->getAnos($codigoData, $mesData, $codigoMarca, $nomeMarca, $codigoModelo, $nomeModelo);
-        }
-    }
-
-    public function getAnos($codigoData, $mesData, $codigoMarca, $nomeMarca, $codigoModelo, $nomeModelo)
-    {
-        $anos = [];
-        $response = Http::post('https://veiculos.fipe.org.br/api/veiculos//ConsultarAnoModelo', [
-            'codigoTabelaReferencia' => $codigoData,
-            'codigoTipoVeiculo' => 1,
-            'codigoMarca' => $codigoMarca,
-            'codigoModelo' => $codigoModelo,
-        ]);
-        $body = $response->body();
-        $anos = json_decode($body);
-        
-        foreach ($anos as $key => $ano) {
-            dd($ano);
-            $codigoAno = $ano->Value;
-            $nomeAno = $ano->Label;
-            $this->getValor($codigoData, $mesData, $codigoMarca, $nomeMarca, $codigoModelo, $nomeModelo, $codigoAno, $nomeAno);
         }
     }
 }
