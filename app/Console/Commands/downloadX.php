@@ -80,10 +80,13 @@ class downloadX extends Command
         $modelos = $modelos->Modelos;
         
         foreach ($anos as $ano) {
-                
-            $anoVeiculo = $ano->Value;
+            $anoVeiculoRaw = explode('-',$ano->Value);
+            
+            $anoVeiculo = $anoVeiculoRaw[0];
+            $codTipoCombustivel = $anoVeiculoRaw[1];
+            
             $combustivelFormat = explode(' ', $ano->Label);
-            $combustivel = $combustivelFormat[0];
+            $combustivel = $combustivelFormat[1];
                 
         }
 
@@ -91,5 +94,35 @@ class downloadX extends Command
             $codigoModelo = $modelo->Value;
             $nomeModelo = $modelo->Label;
         }
+
+        $this->getDataVeiculo($codTipoCombustivel,$codigoData, $mesData, $codigoMarca, $nomeMarca, $codigoModelo, $nomeModelo, $anoVeiculo, $combustivel);
+    }
+
+    public function getDataVeiculo($codTipoCombustivel,$codigoData, $mesData, $codigoMarca, $nomeMarca, $codigoModelo, $nomeModelo, $anoVeiculo, $combustivel)
+    {
+
+        $response = Http::post('https://veiculos.fipe.org.br/api/veiculos//ConsultarValorComTodosParametros', [
+            'codigoTabelaReferencia' => $codigoData,
+            'codigoTipoVeiculo' => 1,
+            'codigoMarca' => $codigoMarca,
+            'codigoModelo' => $codigoModelo,
+            'anoModelo' => $anoVeiculo,
+            'codigoTipoCombustivel' => $codTipoCombustivel,
+            'tipoVeiculo' => 1,
+            'tipoConsulta' => 'tradicional',
+        ]);
+        $body = $response->body();
+        $veiculo = json_decode($body);
+        $valor = $veiculo->Valor;
+        $valor = str_replace('.', '', $valor);
+        $marca = $veiculo->Marca;
+        $modelo = $veiculo->Modelo;
+        $anoModelo = $veiculo->AnoModelo;
+        $combustivel = $veiculo->Combustivel;
+        $mesReferencia = $veiculo->MesReferencia;
+        $tipoVeiculo = $veiculo->TipoVeiculo;
+        $siglaCombustivel = $veiculo->SiglaCombustivel;
+        $data = $veiculo->Data;
+        // $this->saveData($valor, $marca, $modelo, $anoModelo, $combustivel, $mesReferencia, $tipoVeiculo, $siglaCombustivel, $data, $valorFormatado);
     }
 }
